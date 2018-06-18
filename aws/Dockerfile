@@ -6,7 +6,8 @@ ONBUILD ARG _UID=1000
 ONBUILD ARG _GID=1000
 
 ARG TF_VERSION=0.11.7
-ARG KOPS_RELEASE=1.8.1
+ARG TG_VERSION=0.14.11
+ARG KOPS_RELEASE=1.9.1
 
 # KUBECTL_SOURCE: Change to kubernetes-dev/ci for CI
 ARG KUBECTL_SOURCE=kubernetes-release/release
@@ -20,6 +21,7 @@ RUN apk add --no-cache vim sudo jq fping make git openssh-client iptables
 RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
     curl -sSL https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip -o /tmp/terraform.zip && \
               unzip /tmp/terraform.zip -d /usr/bin && \
+    curl -sSL https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64 -o /usr/bin/terragrunt && \
     rm -rf /tmp/*
 
 # Get kops and kubectl

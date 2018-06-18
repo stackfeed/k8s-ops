@@ -13,7 +13,8 @@ The container is meant to be used with privileges of the "target" user (which is
 AWS toolbox contains the following tools:
 
 * Terraform **0.11.7**
-* kops **1.8.1**
+* Terragrunt **0.14.11**
+* kops **1.9.1**
 * awscli (*latest at the time of build*)
 
 
