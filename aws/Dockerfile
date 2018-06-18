@@ -22,6 +22,7 @@ RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
     curl -sSL https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip -o /tmp/terraform.zip && \
               unzip /tmp/terraform.zip -d /usr/bin && \
     curl -sSL https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64 -o /usr/bin/terragrunt && \
+              chmod 755 /usr/bin/terragrunt && \
     rm -rf /tmp/*
 
 # Get kops and kubectl
