@@ -7,6 +7,7 @@ ONBUILD ARG _GID=1000
 
 ARG TF_VERSION=0.11.7
 ARG TG_VERSION=0.16.3
+ARG HELM_VERSION=2.9.1
 ARG KOPS_RELEASE=1.9.1
 
 # KUBECTL_SOURCE: Change to kubernetes-dev/ci for CI
@@ -15,7 +16,7 @@ ARG KUBECTL_SOURCE=kubernetes-release/release
 ARG KUBECTL_TRACK=stable.txt
 
 # Additional packages for the toolbox
-RUN apk add --no-cache vim sudo jq fping make git openssh-client iptables
+RUN apk add --no-cache vim sudo jq fping make git openssl openssh-client iptables
 
 # Install awscli & terraform
 RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
@@ -25,11 +26,13 @@ RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
               chmod 755 /usr/bin/terragrunt && \
     rm -rf /tmp/*
 
-# Get kops and kubectl
+# Get kops, kubectl and helm
 RUN curl -SsL --retry 5 -o /usr/bin/kops https://github.com/kubernetes/kops/releases/download/${KOPS_RELEASE}/kops-linux-amd64 && \
     KUBECTL_VERSION=$(curl -SsL --retry 5 "https://storage.googleapis.com/${KUBECTL_SOURCE}/${KUBECTL_TRACK}") && \
     curl -SsL --retry 5 "https://storage.googleapis.com/${KUBECTL_SOURCE}/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" > /usr/bin/kubectl && \
-    chmod +x /usr/bin/kubectl /usr/bin/kops
+    chmod +x /usr/bin/kubectl /usr/bin/kops && \
+    curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | \
+    DESIRED_VERSION="${HELM_VERSION}" HELM_INSTALL_DIR="/usr/bin" sh
 
 # entrypoint (bash is the default default)
 ADD ./entrypoint.sh /
