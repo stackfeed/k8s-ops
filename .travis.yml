@@ -39,7 +39,7 @@ after_script:
 notifications:
   webhooks:
     urls:
-      - https://hooks.microbadger.com/images/stackfeed/alpine/${MICROBADGER_TOKEN}
+      - https://hooks.microbadger.com/images/stackfeed/toolbox/${MICROBADGER_TOKEN}
     on_success: always
     on_failure: never
     on_start:   never
