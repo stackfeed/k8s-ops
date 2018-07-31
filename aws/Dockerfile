@@ -51,7 +51,7 @@ ONBUILD RUN \
 # create user & group if those don't exist
     ( getent group ${_GID} &>/dev/null || groupadd -g ${_GID} ${_USER} ) && \
     ( id ${_UID} &>/dev/null || useradd -s /bin/zsh -md /home/${_USER} -u ${_UID} -g ${_GID} ${_USER} ) && \
-    echo -e "Runas_Alias USER = #${_UID}\nUSER ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_USER} && \
+    echo "#${_UID} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_USER} && \
     chmod 440 /etc/sudoers.d/${_USER} && \
 # link to home oh-my-zsh
     export USER_HOME=$(getent passwd ${_UID} | cut -f6 -d:) && \
