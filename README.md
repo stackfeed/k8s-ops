@@ -43,7 +43,7 @@ cd - && rm -rf /tmp/stackfeed-toolbox
 
 ```
 # running:
-docker run -it --name myproject -v $YOUR_PROJECT_PATH:/code stackbox:aws
+docker run -it --name myproject -h myproject -v $YOUR_PROJECT_PATH:/code stackbox:aws
 
 
 # starting and attaching:

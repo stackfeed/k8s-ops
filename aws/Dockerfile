@@ -27,7 +27,7 @@ RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
               unzip /tmp/terraform.zip -d /usr/bin && \
     curl -sSL https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64 -o /usr/bin/terragrunt && \
               chmod 755 /usr/bin/terragrunt && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* /tmp/.* /root/* /root/.* &>/dev/null
 
 # Get kops, kubectl and helm
 RUN curl -SsL --retry 5 -o /usr/bin/kops https://github.com/kubernetes/kops/releases/download/${KOPS_RELEASE}/kops-linux-amd64 && \
@@ -48,10 +48,11 @@ ONBUILD RUN ( getent group ${_GID} &>/dev/null || groupadd -g ${_GID} ${_USER} )
             echo "${_USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_USER} && \
             chmod 440 /etc/sudoers.d/${_USER} && \
             # link to home oh-my-zsh
-            export USER_HOME=$(getent passwd ${_USER} | cut -f6 -d:) && \
-            chown -R $_UID:$_GID /opt/oh-my-zsh && ln -s /opt/oh-my-zsh ${USER_HOME}/.oh-my-zsh && \
-            echo "export ZSH=${USER_HOME}/.oh-my-zsh" >> ${USER_HOME}/.zshrc && \
-            echo ". $ZSH/oh-my-zsh.sh" >> ${USER_HOME}/.zshrc && \
+            export USER_HOME=$(getent passwd ${_UID} | cut -f6 -d:) && \
+            chown -R $_UID:$_GID /opt/oh-my-zsh && \
+            echo ". /opt/oh-my-zsh/oh-my-zsh.sh" > ${USER_HOME}/.zshrc && \
+            # add plugins for k8s
+            echo "plugins=(aws helm kops kubectl terraform)" >> ${USER_HOME}/.zshrc
 
 ONBUILD USER $_UID:$_GID
 
