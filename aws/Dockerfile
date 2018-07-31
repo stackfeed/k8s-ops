@@ -56,7 +56,7 @@ ONBUILD RUN \
 # link to home oh-my-zsh
     export USER_HOME=$(getent passwd ${_UID} | cut -f6 -d:) && \
     chown -R $_UID:$_GID /opt/oh-my-zsh && \
-    echo ". /opt/oh-my-zsh/oh-my-zsh.sh" > ${USER_HOME}/.zshrc && \
+    echo -e "export ZSH=/opt/oh-my-zsh\n. \$ZSH/oh-my-zsh.sh" > ${USER_HOME}/.zshrc && \
 # add plugins for k8s
     echo "plugins=(aws helm kops kubectl terraform)" >> ${USER_HOME}/.zshrc
 
