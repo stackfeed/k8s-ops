@@ -39,7 +39,7 @@ RUN curl -SsL --retry 5 -o /usr/bin/kops https://github.com/kubernetes/kops/rele
 
 # entrypoint (bash is the default default)
 ADD ./entrypoint.sh /
-COPY ./oh-my-zsh /opt/
+COPY ./oh-my-zsh /opt/oh-my-zsh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Configure unprivileged user (remeber NOT TO USE adduser from busybox!)
