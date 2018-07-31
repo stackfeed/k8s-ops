@@ -8,10 +8,15 @@ ONBUILD ARG _USER=user
 ONBUILD ARG _UID=1000
 ONBUILD ARG _GID=1000
 
+# Versions
 ARG TF_VERSION=0.11.7
 ARG TG_RELEASE=v0.16.3
 ARG KOPS_VERSION=1.9.2
 ARG HELM_RELEASE=v2.9.1
+
+# List of plugins to enable in ZSH and theme
+ARG ZSH_PLUGINS="aws helm kops kubectl terraform"
+ARG ZSH_THEME=cloud
 
 # KUBECTL_SOURCE: Change to kubernetes-dev/ci for CI
 ARG KUBECTL_SOURCE=kubernetes-release/release
@@ -19,7 +24,7 @@ ARG KUBECTL_SOURCE=kubernetes-release/release
 ARG KUBECTL_TRACK=stable.txt
 
 # Additional packages for the toolbox
-RUN apk add --no-cache zsh vim sudo jq fping make git openssl openssh-client iptables
+RUN apk add --no-cache zsh sed vim sudo jq fping make git openssl openssh-client iptables
 
 # Install awscli & terraform
 RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
@@ -43,7 +48,6 @@ RUN \
     DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/bin" sh -s
 
 # Copy data
-COPY ./oh-my-zsh /opt/oh-my-zsh
 ADD  ./entrypoint.sh /
 
 # Configure unprivileged user (remember NOT TO USE adduser from busybox!)
@@ -52,16 +56,15 @@ ONBUILD RUN \
     ( getent group ${_GID} &>/dev/null || groupadd -g ${_GID} ${_USER} ) && \
     ( id ${_UID} &>/dev/null || useradd -s /bin/zsh -md /home/${_USER} -u ${_UID} -g ${_GID} ${_USER} ) && \
     echo "#${_UID} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_USER} && \
-    chmod 440 /etc/sudoers.d/${_USER} && \
-# link to home oh-my-zsh
-    export USER_HOME=$(getent passwd ${_UID} | cut -f6 -d:) && \
-    chown -R $_UID:$_GID /opt/oh-my-zsh && \
-    echo -e "export ZSH=/opt/oh-my-zsh\n. \$ZSH/oh-my-zsh.sh" > ${USER_HOME}/.zshrc && \
-# add plugins for k8s
-    echo "plugins=(aws helm kops kubectl terraform)" >> ${USER_HOME}/.zshrc
+    chmod 440 /etc/sudoers.d/${_USER}
 
 # Set unprivileged user
 ONBUILD USER $_UID:$_GID
+ONBUILD RUN \
+# install oh-my-zsh and enable given plugins and theme
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" && \
+    awk '/^plugins=\(/,/\)/ { if ( $0 ~ /^plugins=\(/ ) print "plugins=(${ZSH_PLUGINS})"; next } 1' ~/.zshrc && \
+    sed -i 's/\(ZSH_THEME\)=".*"/\1="cloud"/' ~/.zshrc
 
 VOLUME ["/code"]
 WORKDIR "/code"
