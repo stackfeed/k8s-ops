@@ -17,7 +17,7 @@ before_script:
 script:
   - |
       for dockerfile in $(ls */Dockerfile); do
-        docker-build $NAMESPACE/$PROJECT -v -f $dockerfile . || exit $?
+        docker-build $NAMESPACE/$PROJECT -f $dockerfile . || exit $?
       done
 
 # actual deployment happens here
