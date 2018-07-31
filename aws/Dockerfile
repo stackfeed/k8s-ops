@@ -43,16 +43,18 @@ COPY ./oh-my-zsh /opt/oh-my-zsh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Configure unprivileged user (remember NOT TO USE adduser from busybox!)
-ONBUILD RUN ( getent group ${_GID} &>/dev/null || groupadd -g ${_GID} ${_USER} ) && \
-            ( id ${_UID} &>/dev/null || useradd -s /bin/zsh -md /home/${_USER} -u ${_UID} -g ${_GID} ${_USER} ) && \
-            echo "${_USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_USER} && \
-            chmod 440 /etc/sudoers.d/${_USER} && \
-            # link to home oh-my-zsh
-            export USER_HOME=$(getent passwd ${_UID} | cut -f6 -d:) && \
-            chown -R $_UID:$_GID /opt/oh-my-zsh && \
-            echo ". /opt/oh-my-zsh/oh-my-zsh.sh" > ${USER_HOME}/.zshrc && \
-            # add plugins for k8s
-            echo "plugins=(aws helm kops kubectl terraform)" >> ${USER_HOME}/.zshrc
+ONBUILD RUN \
+    # create user & group if those don't exist
+        ( getent group ${_GID} &>/dev/null || groupadd -g ${_GID} ${_USER} ) && \
+        ( id ${_UID} &>/dev/null || useradd -s /bin/zsh -md /home/${_USER} -u ${_UID} -g ${_GID} ${_USER} ) && \
+        echo "${_USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_USER} && \
+        chmod 440 /etc/sudoers.d/${_USER} && \
+    # link to home oh-my-zsh
+        export USER_HOME=$(getent passwd ${_UID} | cut -f6 -d:) && \
+        chown -R $_UID:$_GID /opt/oh-my-zsh && \
+        echo ". /opt/oh-my-zsh/oh-my-zsh.sh" > ${USER_HOME}/.zshrc && \
+    # add plugins for k8s
+        echo "plugins=(aws helm kops kubectl terraform)" >> ${USER_HOME}/.zshrc
 
 ONBUILD USER $_UID:$_GID
 
