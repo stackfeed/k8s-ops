@@ -1,0 +1,47 @@
+language: bash
+services: docker
+
+env:
+  global:
+    - PROJECT=toolbox
+    - NAMESPACE=stackfeed
+    - PUSH_NAMESPACES=stackfeed
+
+install:
+  - curl -sSL https://github.com/stackfeed/ci-scripts/raw/master/install.sh  | sh -s
+
+before_script:
+  - export PATH=$PATH:~/ci-scripts
+  - git submodule init && git submodule update
+
+script:
+  - |
+      for dockerfile in $(ls */Dockerfile); do
+        docker-build $NAMESPACE/$PROJECT -v -f $dockerfile . || exit $?
+      done
+
+# actual deployment happens here
+after_deploy:
+  - |
+      # Skip if we are not in the push namespace list
+      ( echo "$PUSH_NAMESPACES" | grep -qw "${TRAVIS_REPO_SLUG%/*}" ) || exit 0
+      docker-push -r "^$NAMESPACE/$PROJECT:?.*"
+
+deploy:
+  - provider: script
+    script: /bin/true
+    on:
+      branch: master
+
+after_script:
+  - docker images
+
+notifications:
+  webhooks:
+    urls:
+      - https://hooks.microbadger.com/images/stackfeed/alpine/${MICROBADGER_TOKEN}
+    on_success: always
+    on_failure: never
+    on_start:   never
+    on_cancel:  never
+    on_error:   never
