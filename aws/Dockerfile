@@ -42,13 +42,16 @@ ADD ./entrypoint.sh /
 COPY ./oh-my-zsh /opt/oh-my-zsh
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Configure unprivileged user (remeber NOT TO USE adduser from busybox!)
+# Configure unprivileged user (remember NOT TO USE adduser from busybox!)
 ONBUILD RUN ( getent group ${_GID} &>/dev/null || groupadd -g ${_GID} ${_USER} ) && \
             ( id ${_UID} &>/dev/null || useradd -s /bin/zsh -md /home/${_USER} -u ${_UID} -g ${_GID} ${_USER} ) && \
             echo "${_USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_USER} && \
             chmod 440 /etc/sudoers.d/${_USER} && \
             # link to home oh-my-zsh
-            chown -R $_UID:$_GID /opt/oh-my-zsh && ln -s /opt/oh-my-zsh $(getent passwd denz | cut -f6 -d:)/.oh-my-zsh
+            export USER_HOME=$(getent passwd ${_USER} | cut -f6 -d:) && \
+            chown -R $_UID:$_GID /opt/oh-my-zsh && ln -s /opt/oh-my-zsh ${USER_HOME}/.oh-my-zsh && \
+            echo "export ZSH=${USER_HOME}/.oh-my-zsh" >> ${USER_HOME}/.zshrc && \
+            echo ". $ZSH/oh-my-zsh.sh" >> ${USER_HOME}/.zshrc && \
 
 ONBUILD USER $_UID:$_GID
 
