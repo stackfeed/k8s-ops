@@ -61,10 +61,10 @@ ONBUILD RUN \
 # Set unprivileged user
 ONBUILD USER $_UID:$_GID
 ONBUILD RUN \
-# install oh-my-zsh and enable given plugins and theme
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" && \
-    awk '/^plugins=\(/,/\)/ { if ( $0 ~ /^plugins=\(/ ) print "plugins=(${ZSH_PLUGINS})"; next } 1' ~/.zshrc && \
-    sed -i 's/\(ZSH_THEME\)=".*"/\1="cloud"/' ~/.zshrc
+# install oh-my-zsh and enable given plugins and theme (use bash to install)
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" && \
+    awk '/^plugins=\(/,/\)/ { if ( $0 ~ /^plugins=\(/ ) print "plugins=('"${ZSH_PLUGINS}"')"; next } 1' ~/.zshrc > /tmp/.zshrc && \
+    mv /tmp/.zshrc ~/.zshrc && sed -i 's/\(ZSH_THEME\)=".*"/\1="cloud"/' ~/.zshrc
 
 VOLUME ["/code"]
 WORKDIR "/code"
