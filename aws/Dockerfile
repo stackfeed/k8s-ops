@@ -10,7 +10,7 @@ ONBUILD ARG _GID=1000
 
 ARG TF_VERSION=0.11.7
 ARG TG_RELEASE=v0.16.3
-ARG KOPS_RELEASE=1.9.2
+ARG KOPS_VERSION=1.9.2
 ARG HELM_RELEASE=v2.9.1
 
 # KUBECTL_SOURCE: Change to kubernetes-dev/ci for CI
@@ -31,7 +31,7 @@ RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
 
 RUN \
 # fetch kops
-    curl -sSL https://github.com/kubernetes/kops/releases/download/${KOPS_RELEASE}/kops-linux-amd64 \
+    curl -sSL https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 \
         -o /usr/bin/kops && \
 # fetch kubectl
     KUBECTL_VERSION=$(curl -sSL "https://storage.googleapis.com/${KUBECTL_SOURCE}/${KUBECTL_TRACK}") && \
