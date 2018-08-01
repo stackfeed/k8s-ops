@@ -69,4 +69,4 @@ You may also want to pass other volumes into the container if required. Though *
 Homedir specific for your user is created during the image build. There are also a few important steps which happen on build or container startup you should know about:
 
  1. [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh) is installed and configured on image build.
- 2. _**`.aws, .hube, .kube, .ssh`**_ are linked into user's homedir in case they present in the *`/code`* volume, this is fired from the entrypoint.
+ 2. _**`.aws, .helm, .kube, .ssh`**_ are linked into user's homedir in case they present in the *`/code`* volume, this is fired from the entrypoint.
