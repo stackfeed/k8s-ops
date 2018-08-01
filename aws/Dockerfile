@@ -15,8 +15,8 @@ ARG KOPS_VERSION=1.9.2
 ARG HELM_RELEASE=v2.9.1
 
 # List of plugins to enable in ZSH and theme
-ARG ZSH_PLUGINS="aws helm kops kubectl terraform"
-ARG ZSH_THEME=cloud
+ONBUILD ARG ZSH_PLUGINS="aws helm kops kubectl terraform"
+ONBUILD ARG ZSH_THEME=cloud
 
 # KUBECTL_SOURCE: Change to kubernetes-dev/ci for CI
 ARG KUBECTL_SOURCE=kubernetes-release/release
@@ -64,7 +64,7 @@ ONBUILD RUN \
 # install oh-my-zsh and enable given plugins and theme (use bash to install)
     bash -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" && \
     awk '/^plugins=\(/,/\)/ { if ( $0 ~ /^plugins=\(/ ) print "plugins=('"${ZSH_PLUGINS}"')"; next } 1' ~/.zshrc > /tmp/.zshrc && \
-    mv /tmp/.zshrc ~/.zshrc && sed -i 's/\(ZSH_THEME\)=".*"/\1="cloud"/' ~/.zshrc
+    mv /tmp/.zshrc ~/.zshrc && sed -i 's/\(ZSH_THEME\)=".*"/\1="'${ZSH_THEME}'"/' ~/.zshrc
 
 VOLUME ["/code"]
 WORKDIR "/code"

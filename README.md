@@ -60,9 +60,9 @@ docker exec -it myproject bash
 
 ### Toolbox volumes
 
-When running the toolbox container we specify the **code** volume it's used to pass your project code into the toolbox container. Also the `/code` directory is set as the WORKDIR for convenience.
+When running the toolbox container we specify the *`/code`* volume it's used to pass your project code into the toolbox container. Also the *`/code`* directory is set as the WORKDIR for convenience.
 
-You may also want to pass other volumes into the container if required. Though **it's not suggested** to map volume to `/home/YOUR_USER`, since the user's home directory is already available inside the container.
+You may also want to pass other volumes into the container if required. Though **it's not suggested** to map volume to *`/home/YOUR_USER`*, since the user's home directory is already available inside the container.
 
 ### User's homedir initialization
 
