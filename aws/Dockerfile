@@ -24,7 +24,7 @@ ARG KUBECTL_SOURCE=kubernetes-release/release
 ARG KUBECTL_TRACK=stable.txt
 
 # Additional packages for the toolbox
-RUN apk add --no-cache zsh sed vim sudo jq fping make git openssl openssh-client iptables
+RUN apk add --no-cache zsh sed coreutils vim sudo jq fping make git openssl openssh-client iptables
 
 # Install awscli & terraform
 RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
