@@ -26,7 +26,8 @@ ARG KUBECTL_SOURCE=kubernetes-release/release
 ARG KUBECTL_TRACK=stable.txt
 
 # Additional packages for the toolbox
-RUN apk add --no-cache zsh sed coreutils vim sudo jq fping make git openssl openssh-client iptables
+RUN apk add --no-cache zsh sudo coreutils findutils jq fping make git \
+        sed vim openssl openssh-client iptables gnupg
 
 # Install awscli & terraform
 RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
@@ -71,9 +72,7 @@ ONBUILD RUN \
     awk '/^plugins=\(/,/\)/ { if ( $0 ~ /^plugins=\(/ ) print "plugins=('"${ZSH_PLUGINS}"')"; next } 1' ~/.zshrc > /tmp/.zshrc && \
     mv /tmp/.zshrc ~/.zshrc && sed -i 's/\(ZSH_THEME\)=".*"/\1="'${ZSH_THEME}'"/' ~/.zshrc && \
 # install helm secrets plugin
-    bash -lc "
-      sudo -E helm plugin install https://github.com/futuresimple/helm-secrets;
-    "
+    bash -lc "sudo -E helm plugin install https://github.com/futuresimple/helm-secrets"
 
 VOLUME ["/code"]
 WORKDIR "/code"
