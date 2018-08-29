@@ -25,7 +25,6 @@ before_script:
 script:
   - |-
       docker-build -v $VERSION -F aws -f $FLAVOUR -l "$LATESTS" "$NAMESPACE/$PROJECT" \
-        --build-arg tag=${VERSION%%-*} \
         --build-arg version=${VERSION} \
           -f ${DFDIR}/Dockerfile ./ || exit $?
 
