@@ -14,6 +14,7 @@ ARG TF_VERSION=0.11.7
 ARG TG_RELEASE=v0.16.3
 ARG KOPS_VERSION=1.9.2
 ARG HELM_RELEASE=v2.9.1
+ARG HELMFILE_RELEASE=v0.25.0
 
 # List of plugins to enable in ZSH and theme
 ONBUILD ARG ZSH_PLUGINS="aws helm kops kubectl terraform"
@@ -46,7 +47,10 @@ RUN \
          -o /usr/bin/kubectl && chmod 755 /usr/bin/kubectl /usr/bin/kops && \
 # fetch helm
     curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | \
-    DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/bin" sh -s
+    DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/bin" sh -s && \
+# fetch helmfile
+    curl -sSL "https://github.com/roboll/helmfile/releases/download/${HELMFILE_RELEASE}/helmfile_linux_amd64" \
+         -o /usr/bin/helmfile && chmod 755 /usr/bin/helmfile
 
 # Copy data
 ADD  ./entrypoint.sh /
@@ -65,7 +69,11 @@ ONBUILD RUN \
 # install oh-my-zsh and enable given plugins and theme (use bash to install)
     bash -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" && \
     awk '/^plugins=\(/,/\)/ { if ( $0 ~ /^plugins=\(/ ) print "plugins=('"${ZSH_PLUGINS}"')"; next } 1' ~/.zshrc > /tmp/.zshrc && \
-    mv /tmp/.zshrc ~/.zshrc && sed -i 's/\(ZSH_THEME\)=".*"/\1="'${ZSH_THEME}'"/' ~/.zshrc
+    mv /tmp/.zshrc ~/.zshrc && sed -i 's/\(ZSH_THEME\)=".*"/\1="'${ZSH_THEME}'"/' ~/.zshrc && \
+# install helm secrets plugin
+    bash -lc "
+      sudo -E helm plugin install https://github.com/futuresimple/helm-secrets;
+    "
 
 VOLUME ["/code"]
 WORKDIR "/code"
