@@ -1,7 +1,8 @@
-FROM stackfeed/alpine-python3
+FROM stackfeed/alpine-python3:latest
 
-LABEL vendor=StackFeed \
-      version_tags="[\"aws\", \"aws-tf-0.11.7\", \"aws-kops-1.9.2\"]"
+ARG version
+LABEL com.stackfeed.toolbox.vendor=StackFeed \
+      com.stackfeed.toolbox.version=${version} \
 
 # Host user *IDs
 ONBUILD ARG _USER=user

@@ -6,42 +6,45 @@ env:
     - PROJECT=toolbox
     - NAMESPACE=stackfeed
     - PUSH_NAMESPACES=stackfeed
+  matrix:
+    - DFDIR=./aws FLAVOUR=aws
 
 install:
-  - curl -sSL https://github.com/stackfeed/ci-scripts/raw/master/install.sh  | sh -s
+  - curl -sSL https://github.com/stackfeed/ci-scripts/raw/master/install.sh | sh -s -- -r v0.2
 
 before_script:
-  - export PATH=$PATH:~/ci-scripts
-  - git submodule init && git submodule update
+  - |-
+      export PATH=$PATH:~/ci-scripts
+      export LATESTS=$(curl -sSL "https://raw.githubusercontent.com/${TRAVIS_REPO_SLUG}/master/.latests")
+      export VERSION=$TRAVIS_TAG
+
+      # pick any version from .latests (if we are not releasing)
+      [ -n "$VERSION" ] || VERSION=$(cat .latests | cut -f1 -d' ')
+
 
 script:
-  - |
-      for dockerfile in $(ls */Dockerfile); do
-        docker-build $NAMESPACE/$PROJECT -f $dockerfile . || exit $?
-      done
+  - |-
+      docker-build -v $VERSION -F aws -f $FLAVOUR -l "$LATESTS" "$NAMESPACE/$PROJECT" \
+        --build-arg tag=${VERSION%%-*} \
+        --build-arg version=${VERSION} \
+          -f ${DFDIR}/Dockerfile ./ || exit $?
 
-# actual deployment happens here
+# deploy containers to hub.docker.com
 after_deploy:
   - |
       # Skip if we are not in the push namespace list
       ( echo "$PUSH_NAMESPACES" | grep -qw "${TRAVIS_REPO_SLUG%/*}" ) || exit 0
       docker-push -r "^$NAMESPACE/$PROJECT:?.*"
 
+      # update microbadger
+      curl -XPOST "https://hooks.microbadger.com/images/${NAMESPACE}/${PROJECT}/${MICROBADGER_TOKEN}"
+
 deploy:
   - provider: script
     script: /bin/true
     on:
-      branch: master
+      tags: true
+      condition: $TRAVIS_TAG =~ ^[0-9]
 
 after_script:
   - docker images
-
-notifications:
-  webhooks:
-    urls:
-      - https://hooks.microbadger.com/images/stackfeed/toolbox/${MICROBADGER_TOKEN}
-    on_success: always
-    on_failure: never
-    on_start:   never
-    on_cancel:  never
-    on_error:   never
