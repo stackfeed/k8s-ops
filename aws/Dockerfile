@@ -2,7 +2,7 @@ FROM stackfeed/alpine-python3:latest
 
 ARG version
 LABEL com.stackfeed.toolbox.vendor=StackFeed \
-      com.stackfeed.toolbox.version=${version} \
+      com.stackfeed.toolbox.version=${version}
 
 # Host user *IDs
 ONBUILD ARG _USER=user
