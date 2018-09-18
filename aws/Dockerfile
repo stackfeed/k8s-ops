@@ -10,11 +10,13 @@ ONBUILD ARG _UID=1000
 ONBUILD ARG _GID=1000
 
 # Versions
-ARG TF_VERSION=0.11.7
-ARG TG_RELEASE=v0.16.3
-ARG KOPS_VERSION=1.9.2
-ARG HELM_RELEASE=v2.9.1
-ARG HELMFILE_RELEASE=v0.25.0
+ARG TF_VERSION=0.11.8
+ARG TG_RELEASE=v0.16.10
+ARG KOPS_VERSION=1.10.0
+ARG HELM_RELEASE=v2.10.0
+ARG HELMFILE_RELEASE=v0.35.0
+
+ENV HELM_BINARY=/usr/bin/helm-binary
 
 # List of plugins to enable in ZSH and theme
 ONBUILD ARG ZSH_PLUGINS="aws helm kops kubectl terraform"
@@ -49,12 +51,14 @@ RUN \
 # fetch helm
     curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | \
     DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/bin" sh -s && \
+    mv /usr/bin/helm ${HELM_BINARY} && \
 # fetch helmfile
     curl -sSL "https://github.com/roboll/helmfile/releases/download/${HELMFILE_RELEASE}/helmfile_linux_amd64" \
          -o /usr/bin/helmfile && chmod 755 /usr/bin/helmfile
 
 # Copy data
-ADD  ./entrypoint.sh /
+ADD ./entrypoint.sh /
+ADD ./scripts/helm /usr/bin/helm
 
 # Configure unprivileged user (remember NOT TO USE adduser from busybox!)
 ONBUILD RUN \

@@ -1,0 +1,16 @@
+#!/bin/sh
+HELM_BINARY=${HELM_BINARY:-/usr/bin/helm-binary}
+
+## Enable --tls substitution for helm tls-enabled commands
+#
+__tls_commands="del delete get hist history install ls list reset rollback status test upgrade verify"
+cmd="$1"
+shift
+
+args="$@"
+# tls enabled command
+if ( echo "${__tls_commands}" | grep -wq "${cmd}" ); then
+  args="--tls $@"
+fi
+
+$HELM_BINARY ${cmd} ${args}
