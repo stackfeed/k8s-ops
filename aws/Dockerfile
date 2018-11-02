@@ -15,6 +15,7 @@ ARG TG_RELEASE=v0.16.10
 ARG KOPS_VERSION=1.10.0
 ARG HELM_RELEASE=v2.10.0
 ARG HELMFILE_RELEASE=v0.35.0
+ARG ARK_RELEASE=v0.9.10
 
 ENV HELM_BINARY=/usr/bin/helm-binary
 
@@ -47,14 +48,18 @@ RUN \
     KUBECTL_VERSION=$(curl -sSL "https://storage.googleapis.com/${KUBECTL_SOURCE}/${KUBECTL_TRACK}") && \
 #
     curl -sSL "https://storage.googleapis.com/${KUBECTL_SOURCE}/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
-         -o /usr/bin/kubectl && chmod 755 /usr/bin/kubectl /usr/bin/kops && \
+        -o /usr/bin/kubectl && chmod 755 /usr/bin/kubectl /usr/bin/kops && \
 # fetch helm
     curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | \
     DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/bin" sh -s && \
     mv /usr/bin/helm ${HELM_BINARY} && \
 # fetch helmfile
     curl -sSL "https://github.com/roboll/helmfile/releases/download/${HELMFILE_RELEASE}/helmfile_linux_amd64" \
-         -o /usr/bin/helmfile && chmod 755 /usr/bin/helmfile
+        -o /usr/bin/helmfile && chmod 755 /usr/bin/helmfile && \
+# fetch heptio ark
+    cd /tmp/ && curl --remote-name-all -sSLO https://github.com/heptio/ark/releases/download/${ARK_RELEASE}/{ark-${ARK_RELEASE}-linux-amd64.tar.gz,CHECKSUM} && \
+        cat CHECKSUM | grep "${ARK_RELEASE}-linux-amd64" | sed "s/\s+/  /" | sha256sum -c && \
+        tar -xzf ark-${ARK_RELEASE}-linux-amd64.tar.gz && mv ark /usr/bin && chmod 755 /usr/bin/ark && rm -rf /tmp/*
 
 # Copy data
 ADD ./entrypoint.sh /
