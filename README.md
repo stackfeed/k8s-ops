@@ -70,7 +70,18 @@ That's why the first rule is to always pre-createa a volume for the container us
 # create volume to store home directory files
 docker volume create myproject-home
 
-# we admit that the code we work with is in ~/code, so we keep this in when we initate the container
-docker run -ti --name myproject --hostname myproject -u $(id -u):$(id -g) -v myproject-home:/home/fixuid -v ~/code:/home/fixuid/code stackfeed/k8s-ops:aws
+# we admit that the code we work with is in ~/code, so we keep this in when we initiate the container
+docker run -ti  --name myproject --hostname myproject \
+  -u $(id -u):$(id -g) \
+  -v myproject-home:/home/fixuid \
+  -v ~/code:/home/fixuid/code \
+  stackfeed/k8s-ops:aws
 
+# create container with CAP_NET_ADMIN privilege to enable iptables usage
+docker run -ti --name myproject --hostname myproject \
+  --cap-add=NET_ADMIN \
+  -u $(id -u):$(id -g) \
+  -v myproject-home:/home/fixuid \
+  -v ~/code:/home/fixuid/code \
+  stackfeed/k8s-ops:aws
 ```
