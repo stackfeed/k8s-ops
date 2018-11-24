@@ -1,72 +1,76 @@
-# [stackfeed/toolbox](https://hub.docker.com/r/stackfeed/toolbox/) cloud tools docker image
+# [stackfeed/k8s-ops](https://hub.docker.com/r/stackfeed/k8s-ops/) cloud tools docker image
 
-Docker image which bundles cloud automation software used by stackfeed projects and aims to make interaction with your cloud environment more delightful. *Finally it helps to keep your workstation CLEAN and DRY*😜
+Docker image which bundles cloud automation software used for operating kubernetes. Apart from that the container bundles lots of useful tools to provide you a ready-to-go container workstation without need to install anything on your host machine.
+
+## Tools
+
+List of software bundled into this container:
+
+* [Terraform](https://www.terraform.io/) - infrastructure managment which works with almost any cloud provider
+* [Terragrunt](https://github.com/gruntwork-io/terragrunt) - a thin terraform wrapper-tool which meant to make experience smoother when working with multiple terraform stages and environments
+* [KOPS](https://github.com/kubernetes/kops) - the easiest way to get a production grade Kubernetes cluster up and running
+* [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) - kubernetes CLI tool
+* [Helm](https://helm.sh/) - the package manager for Kubernetes
+* [Helmfile](https://github.com/roboll/helmfile) - is a declarative spec for deploying helm charts
+* [AWS CLI](https://aws.amazon.com/cli/) - AWS CLI tool (*available in AWS container flavour*)
+* [Heptio Ark](https://github.com/heptio/ark) - is an utility for managing disaster recovery, specifically for your Kubernetes cluster resources and persistent volumes (*available in AWS container flavour*).
+
+## k8s-ops for AWS
+
+[![](https://images.microbadger.com/badges/version/stackfeed/k8s-ops:aws.svg)](https://microbadger.com/images/stackfeed/k8s-ops:aws "Get your own version badge on microbadger.com") [![](https://images.microbadger.com/badges/image/stackfeed/k8s-ops:aws.svg)](https://microbadger.com/images/stackfeed/k8s-ops:aws "Get your own image badge on microbadger.com")
 
 ## Usage
 
-The container is meant to be used with privileges of the "target" user (which is you at your workstation). This will make your experience smoother because you can map volumes with your files, create directories and files in the container and permissions of those can be on par with your host system. So **do not skip** important *Build dependent container* section.
+This container uses [fixuid](https://github.com/boxboat/fixuid) a go binary to change Docker container user/group and file permissions at runtime. That's why **it's recommended to run as unprivileged user matching your host UID, GID**.
 
-##  AWS toolbox
+Typical workstation container initialization looks like:
 
- [![](https://images.microbadger.com/badges/version/stackfeed/toolbox:aws.svg)](https://microbadger.com/images/stackfeed/toolbox:aws "Get your own version badge on microbadger.com") [![](https://images.microbadger.com/badges/image/stackfeed/toolbox:aws.svg)](https://microbadger.com/images/stackfeed/toolbox:aws "Get your own image badge on microbadger.com")
-
-AWS toolbox contains the following cloud automation tools:
-
-* Terraform **0.11.7**
-* Terragrunt **0.16.13**
-* kops **1.9.2**
-* helm **2.9.1**
-* awscli (*latest at the time of build*)
-
-
-### Build dependent container (pass the desired build arguments)
-
-```
-# Provide host UID and GID for the build
-_USER=$(id -un)
-_UID=$(id -u)
-_GID=$(id -g)
-
-mkdir -p /tmp/stackfeed-toolbox && cd /tmp/stackfeed-toolbox
-echo "FROM stackfeed/toolbox:aws" > Dockerfile
-
-docker build --no-cache -t stackbox:aws \
-             --build-arg _USER=${_USER} \
-             --build-arg _UID=${_UID} \
-             --build-arg _GID=${_GID} .
-
-cd - && rm -rf /tmp/stackfeed-toolbox
+```bash
+docker run -ti --name myproject -u $(id -u):$(id -g) -v /some/path:/code -w /code stackfeed/k8s-ops:aws
 ```
 
-### Using toolbox container
+Here above we create a container and name it `myproject`, provide UID/GID of the host system and also we can pass any volumes which might be required.
 
 
-```
-# change to your terraform/kops/k8s project directory!
-cd /path/to/my/project
+### Stopping/starting the k8s-ops tools container
 
-# initiating container with name and hostname set to myproject
-docker run -it --name myproject -h myproject -v $(pwd):/code stackbox:aws
 
-# starting and attaching:
+```bash
+docker stop myproject
 docker start myproject
-docker attach myproject
-
-# exec another shell process in the container
-docker exec -it myproject bash
 ```
 
-## Notes
+### Getting the console
 
-### Toolbox volumes
+To get any number of consoles running you can simply exec into the running container as simple as this:
 
-When running the toolbox container we specify the *`/code`* volume it's used to pass your project code into the toolbox container. Also the *`/code`* directory is set as the WORKDIR for convenience.
+```bash
+docker exec -ti myproject zsh
+```
 
-You may also want to pass other volumes into the container if required. Though **it's not suggested** to map volume to *`/home/YOUR_USER`*, since the user's home directory is already available inside the container.
+also **note that** if you want to get **fancy colors and proper terminal width and height** you have to enhance the docker exec by providing additional options:
 
-### User's homedir initialization
+```bash
+docker exec -ti --env COLUMNS=`tput cols` --env LINES=`tput lines` myproject zsh
+```
 
-Homedir specific for your user is created during the image build. There are also a few important steps which happen on build or container startup you should know about:
+But better make yourself an alias: `alias deti="docker exec -ti --env COLUMNS=`tput cols` --env LINES=`tput lines`"`
 
- 1. [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh) is installed and configured on image build.
- 2. _**`.aws, .helm, .kube, .ssh`**_ are linked into user's homedir in case they present in the *`/code`* volume, this is fired from the entrypoint.
+### Volumes
+
+Here are a few best practices. When working on the workstation almost any application makes use of the home directory. Tools bundled into this container are no exception, for example kubectl uses `~/.kube` directory and helm uses `~/.helm`.
+
+**_In case if you recreate container to update the tools all the configuration will be lost!_**
+
+That's why the first rule is to always pre-createa a volume for the container user home. The second rule is not to forget to pass volumes with the code.
+
+### Best practice example
+
+```bash
+# create volume to store home directory files
+docker volume create myproject-home
+
+# we admit that the code we work with is in ~/code, so we keep this in when we initate the container
+docker run -ti --name myproject --hostname myproject -u $(id -u):$(id -g) -v myproject-home:/home/fixuid -v ~/code:/home/fixuid/code stackfeed/k8s-ops:aws
+
+```
