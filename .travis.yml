@@ -3,7 +3,7 @@ services: docker
 
 env:
   global:
-    - PROJECT=toolbox
+    - PROJECT=k8s-ops
     - NAMESPACE=stackfeed
     - PUSH_NAMESPACES=stackfeed
   matrix:
