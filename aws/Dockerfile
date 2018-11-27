@@ -11,6 +11,7 @@ ARG KOPS_VERSION=1.10.0
 ARG HELM_RELEASE=v2.11.0
 ARG HELMFILE_RELEASE=v0.40.2
 ARG ARK_RELEASE=v0.9.10
+ARG AUTHENTICATOR_RELEASE=v0.3.0
 
 # List of plugins to enable in ZSH and theme
 ENV ZSH_PLUGINS="aws helm kops kubectl terraform"
@@ -57,7 +58,14 @@ RUN \
     cd /tmp/ && curl --remote-name-all -sSLO https://github.com/heptio/ark/releases/download/${ARK_RELEASE}/{ark-${ARK_RELEASE}-linux-amd64.tar.gz,CHECKSUM} && \
         cat CHECKSUM | grep "${ARK_RELEASE}-linux-amd64" | sed "s/\s+/  /" | sha256sum -c && \
         tar -xzf ark-${ARK_RELEASE}-linux-amd64.tar.gz && mv ark /usr/local/bin && \
-        chown root:root /usr/local/bin/ark && chmod 755 /usr/local/bin/ark && rm -rf /tmp/*
+        chown root:root /usr/local/bin/ark && chmod 755 /usr/local/bin/ark && rm -rf /tmp/* && \
+# fetch aws iam authenticator
+    export ver="${AUTHENTICATOR_RELEASE#v}" && \
+    export bin=/usr/local/bin/aws-iam-authenticator && \
+    cd /tmp/ && curl --remote-name-all -sSLO https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${ver}/{heptio-authenticator-aws_${ver}_linux_amd64,authenticator_${ver}_checksums.txt} && \
+        cat authenticator_${ver}_checksums.txt | grep "${ver}_linux_amd64" | sha256sum -c && \
+        mv heptio-authenticator-aws_${ver}_linux_amd64 ${bin} && \
+        chown root:root ${bin} && chmod 755 ${bin} && rm -rf /tmp/*
 
 # Copy data
 ADD ./scripts/helm /usr/local/bin/helm
