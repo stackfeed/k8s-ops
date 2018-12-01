@@ -1,5 +1,5 @@
 #!/bin/sh
-HELM_BINARY=${HELM_BINARY:-/usr/bin/helm-binary}
+HELM_BINARY=${HELM_BINARY:-/usr/local/bin/helm-binary}
 
 ## Enable --tls substitution for helm tls-enabled commands
 #
@@ -8,8 +8,10 @@ cmd="$1"
 shift
 
 args="$@"
-# tls enabled command
-if ( echo "${__tls_commands}" | grep -wq "${cmd}" ); then
+enabled="yes y true enabled enable"
+
+# enable tls
+if ( echo "${__tls_commands}" | grep -wq "${cmd}" && echo "$enabled" | grep -wq "$HELM_FORCE_TLS" ); then
   args="--tls $@"
 fi
 

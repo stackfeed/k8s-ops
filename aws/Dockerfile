@@ -18,6 +18,7 @@ ENV ZSH_PLUGINS="aws helm kops kubectl terraform"
 ENV ZSH_THEME=cloud
 
 ENV HELM_BINARY=/usr/local/bin/helm-binary
+ENV HELM_FORCE_TLS=no
 ENV FIXUID_CHECKSUM=e901f3b21e62ebed92172df969bfc6cbfdfa8f53afb060f20f25e77dcbc20ff5
 
 

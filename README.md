@@ -15,6 +15,14 @@ List of software bundled into this container:
 * [AWS CLI](https://aws.amazon.com/cli/) - AWS CLI tool (*available in AWS container flavour*)
 * [Heptio Ark](https://github.com/heptio/ark) - is an utility for managing disaster recovery, specifically for your Kubernetes cluster resources and persistent volumes (*available in AWS container flavour*).
 
+## Container environment
+
+| Name | Description | Default |
+|------|-------------|:----:|
+| ZSH_THEME | Zsh theme to use. | `cloud` |
+| ZSH_PLUGINS | Zsh plugins enabled. | `aws helm kops kubectl terraform` |
+| HELM_FORCE_TLS | Specify y/yes/enabled/enable to force Helm `--tls` option. | `no` |
+
 ## k8s-ops for AWS
 
 [![](https://images.microbadger.com/badges/version/stackfeed/k8s-ops:aws.svg)](https://microbadger.com/images/stackfeed/k8s-ops:aws "Get your own version badge on microbadger.com") [![](https://images.microbadger.com/badges/image/stackfeed/k8s-ops:aws.svg)](https://microbadger.com/images/stackfeed/k8s-ops:aws "Get your own image badge on microbadger.com")
