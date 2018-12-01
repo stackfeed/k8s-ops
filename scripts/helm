@@ -3,7 +3,7 @@ HELM_BINARY=${HELM_BINARY:-/usr/local/bin/helm-binary}
 
 ## Enable --tls substitution for helm tls-enabled commands
 #
-__tls_commands="del delete get hist history install ls list reset rollback status test upgrade verify"
+__tls_commands="diff del delete get hist history install ls list reset rollback status test upgrade verify"
 cmd="$1"
 shift
 

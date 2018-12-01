@@ -71,8 +71,9 @@ RUN \
 # Copy data
 ADD ./scripts/helm /usr/local/bin/helm
 
-# Install fixuid and create an unprivileged user (sudo enabled)
-RUN USER=fixuid && GROUP=fixuid && \
+RUN \
+# install fixuid and create an unprivileged user (sudo enabled)
+    USER=fixuid && GROUP=fixuid && \
     curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.4/fixuid-0.4-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - && \
     printf "${FIXUID_CHECKSUM}  /usr/local/bin/fixuid" | sha256sum -c && \
     chown root:root /usr/local/bin/fixuid && \
@@ -81,7 +82,14 @@ RUN USER=fixuid && GROUP=fixuid && \
     printf "user: ${USER}\ngroup: ${GROUP}\n" > /etc/fixuid/config.yml && \
     adduser -Ds /bin/zsh fixuid && \
     echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER} && \
-    chmod 440 /etc/sudoers.d/${USER}
+    chmod 440 /etc/sudoers.d/${USER} && \
+# init helm and install plugins
+    sudo -H -u ${USER} sh -c "\
+        helm init --client-only && \
+        helm plugin install https://github.com/databus23/helm-diff --version master \
+    " && \
+# move current user home into a "skeleton" directory
+    mv /home/${USER} /home/_home-skeleton_ && mkdir /home/${USER} && chown ${USER}:${GROUP} /home/${USER}
 
 ADD ./entrypoint.sh /
 ENTRYPOINT ["/usr/local/bin/fixuid", "/entrypoint.sh"]

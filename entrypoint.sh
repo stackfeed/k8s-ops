@@ -1,5 +1,10 @@
 #!/bin/sh
 
+## copy skeleton into actual $HOME
+cwd=$(pwd) && cd /home/_home-skeleton_
+ls -a1 | sed '/^\(\.\|\.\.\)$/d' | xargs -I{} sh -c "test -e $HOME/{} || cp -ar {} ${HOME}"
+cd "${cwd}"
+
 ## install oh-my-zsh and enable given plugins and theme
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
