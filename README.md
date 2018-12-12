@@ -21,7 +21,7 @@ List of software bundled into this container:
 |------|-------------|:----:|
 | ZSH_THEME | Zsh theme to use. | `cloud` |
 | ZSH_PLUGINS | Zsh plugins enabled. | `aws helm kops kubectl terraform` |
-| HELM_FORCE_TLS | Specify y/yes/enabled/enable to force Helm `--tls` option. | `no` |
+| HELM_FORCE_TLS | Specify y/yes/enabled/enable/true to force Helm `--tls` option. | `no` |
 
 ## k8s-ops for AWS
 
