@@ -83,14 +83,15 @@ RUN \
     adduser -Ds /bin/zsh fixuid && \
     echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER} && \
     chmod 440 /etc/sudoers.d/${USER} && \
-# init helm and install plugins
+# init helm with plugins and install zsh
     sudo -H -u ${USER} sh -c "\
         helm init --client-only && \
         helm plugin install https://github.com/databus23/helm-diff --version master \
+        curl -#SL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | bash -s && \
+        zsh -c /bin/true \
     " && \
 # move current user home into a "skeleton" directory
     mv /home/${USER} /home/_home-skeleton_ && mkdir /home/${USER} && chown ${USER}:${GROUP} /home/${USER}
 
 ADD ./entrypoint.sh /
 ENTRYPOINT ["/usr/local/bin/fixuid", "/entrypoint.sh"]
-WORKDIR /home/fixuid
