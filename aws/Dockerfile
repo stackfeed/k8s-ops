@@ -1,35 +1,35 @@
-FROM stackfeed/alpine-python3:latest
+FROM python:3.6-alpine
 
 ARG version
 LABEL com.stackfeed.k8s-ops.vendor=StackFeed \
       com.stackfeed.k8s-ops.version=${version}
 
-# Versions
-ARG TF_VERSION=0.11.10
-ARG TG_RELEASE=v0.17.1
-ARG KOPS_VERSION=1.10.0
-ARG HELM_RELEASE=v2.11.0
-ARG HELMFILE_RELEASE=v0.40.2
-ARG ARK_RELEASE=v0.9.10
-ARG AUTHENTICATOR_RELEASE=v0.3.0
-
 # List of plugins to enable in ZSH and theme
-ENV ZSH_PLUGINS="aws helm kops kubectl terraform"
-ENV ZSH_THEME=cloud
+ENV ZSH_PLUGINS="aws helm kops kubectl terraform" \
+    ZSH_THEME=cloud \
+    HELM_BINARY=/usr/local/bin/helm-binary \
+    HELM_FORCE_TLS=no
 
-ENV HELM_BINARY=/usr/local/bin/helm-binary
-ENV HELM_FORCE_TLS=no
-ENV FIXUID_CHECKSUM=e901f3b21e62ebed92172df969bfc6cbfdfa8f53afb060f20f25e77dcbc20ff5
+# Tooling versions
+ENV \
+    KUBECTL_SOURCE=kubernetes-release/release \
+    KUBECTL_TRACK=stable.txt \
+    TF_VERSION=0.11.10 \
+    TG_RELEASE=v0.17.1 \
+    KOPS_VERSION=1.10.0 \
+    HELM_RELEASE=v2.11.0 \
+    HELMFILE_RELEASE=v0.40.2 \
+    ARK_RELEASE=v0.9.10 \
+    AUTHENTICATOR_RELEASE=v0.3.0 \
+    FIXUID_RELEASE=v0.4 \
+    FIXUID_CHECKSUM=e901f3b21e62ebed92172df969bfc6cbfdfa8f53afb060f20f25e77dcbc20ff5 \
+    SOPS_VERSION=3.2.0 \
+    SOPS_CHECKSUM=fec5b5b5bbae922a829a6277f6d66a061d990c04132da3c82db32ccc309a22e7
 
-
-# KUBECTL_SOURCE: Change to kubernetes-dev/ci for CI
-ARG KUBECTL_SOURCE=kubernetes-release/release
-# KUBECTL_TRACK: Currently latest from KUBECTL_SOURCE. Change to latest-1.3.txt, etc. if desired.
-ARG KUBECTL_TRACK=stable.txt
 
 # Additional packages for the toolbox
-RUN apk add --no-cache zsh sudo coreutils findutils jq fping make git \
-        sed vim openssl openssh-client iptables gnupg
+RUN apk add --no-cache zsh bash curl sudo coreutils findutils jq fping make git \
+        sed nano vim openssl openssh-client iptables gnupg
 
 # Install awscli & terraform
 RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
@@ -61,20 +61,26 @@ RUN \
         tar -xzf ark-${ARK_RELEASE}-linux-amd64.tar.gz && mv ark /usr/local/bin && \
         chown root:root /usr/local/bin/ark && chmod 755 /usr/local/bin/ark && rm -rf /tmp/* && \
 # fetch aws iam authenticator
-    export ver="${AUTHENTICATOR_RELEASE#v}" && \
-    export bin=/usr/local/bin/aws-iam-authenticator && \
+    ver="${AUTHENTICATOR_RELEASE#v}" && \
+    bin=/usr/local/bin/aws-iam-authenticator && \
     cd /tmp/ && curl --remote-name-all -sSLO https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${ver}/{heptio-authenticator-aws_${ver}_linux_amd64,authenticator_${ver}_checksums.txt} && \
         cat authenticator_${ver}_checksums.txt | grep "${ver}_linux_amd64" | sha256sum -c && \
         mv heptio-authenticator-aws_${ver}_linux_amd64 ${bin} && \
-        chown root:root ${bin} && chmod 755 ${bin} && rm -rf /tmp/*
+        chown root:root ${bin} && chmod 755 ${bin} && rm -rf /tmp/* && \
+# install sops
+    ver="${SOPS_RELEASE#v}" && \
+    bin=/usr/local/bin/sops && \
+    curl --remote-name-all -sSL https://github.com/mozilla/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux \
+        -o ${bin} && printf "${SOPS_CHECKSUM}  ${bin}" | sha256sum -c && chown root:root ${bin} && chmod 755 ${bin}
+
 
 # Copy data
 ADD ./scripts/helm /usr/local/bin/helm
 
-RUN \
+RUN cd /tmp && \
 # install fixuid and create an unprivileged user (sudo enabled)
-    USER=fixuid && GROUP=fixuid && \
-    curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.4/fixuid-0.4-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - && \
+    USER=fixuid && GROUP=fixuid && ver=${FIXUID_RELEASE#v} && \
+    curl -sSL https://github.com/boxboat/fixuid/releases/download/${FIXUID_RELEASE}/fixuid-${ver}-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - && \
     printf "${FIXUID_CHECKSUM}  /usr/local/bin/fixuid" | sha256sum -c && \
     chown root:root /usr/local/bin/fixuid && \
     chmod 4755 /usr/local/bin/fixuid && \
@@ -85,13 +91,15 @@ RUN \
     chmod 440 /etc/sudoers.d/${USER} && \
 # init helm with plugins and install zsh
     sudo -H -u ${USER} sh -c "\
-        helm init --client-only && \
-        helm plugin install https://github.com/databus23/helm-diff --version master \
-        curl -#SL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | bash -s && \
-        zsh -c /bin/true \
+        helm init --client-only; \
+        helm plugin install https://github.com/databus23/helm-diff --version master; \
+        helm plugin install https://github.com/futuresimple/helm-secrets --version master; \
+        curl -#SL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | bash -s; \
     " && \
 # move current user home into a "skeleton" directory
-    mv /home/${USER} /home/_home-skeleton_ && mkdir /home/${USER} && chown ${USER}:${GROUP} /home/${USER}
+    mv /home/${USER} /home/_home-skeleton_ && mkdir /home/${USER} && chown ${USER}:${GROUP} /home/${USER} && \
+# cleanup
+    rm -rf /tmp/*
 
 ADD ./entrypoint.sh /
 ENTRYPOINT ["/usr/local/bin/fixuid", "/entrypoint.sh"]
