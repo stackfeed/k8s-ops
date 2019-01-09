@@ -14,11 +14,11 @@ ENV ZSH_PLUGINS="aws helm kops kubectl terraform" \
 ENV \
     KUBECTL_SOURCE=kubernetes-release/release \
     KUBECTL_TRACK=stable.txt \
-    TF_VERSION=0.11.10 \
-    TG_RELEASE=v0.17.1 \
-    KOPS_VERSION=1.10.0 \
-    HELM_RELEASE=v2.11.0 \
-    HELMFILE_RELEASE=v0.40.2 \
+    TF_VERSION=0.11.11 \
+    TG_RELEASE=v0.17.4 \
+    KOPS_VERSION=1.11.0 \
+    HELM_RELEASE=v2.12.1 \
+    HELMFILE_RELEASE=v0.41.0 \
     ARK_RELEASE=v0.9.10 \
     AUTHENTICATOR_RELEASE=v0.3.0 \
     FIXUID_RELEASE=v0.4 \
