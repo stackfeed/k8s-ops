@@ -93,3 +93,27 @@ docker run -ti --name myproject --hostname myproject \
   -v ~/code:/home/fixuid/code \
   stackfeed/k8s-ops:aws
 ```
+
+#### MacOS
+
+There are known issues with volumes when running the container on MacOS. It's recommended not to use volumes!
+
+```bash
+mkdir myproject-home
+
+# we admit that the code we work with is in ~/code, so we keep this in when we initiate the container
+docker run -ti  --name myproject --hostname myproject \
+  -u $(id -u):$(id -g) \
+  -v $(pwd)/myproject-home:/home/fixuid \
+  -v ~/code:/home/fixuid/code \
+  stackfeed/k8s-ops:aws
+```
+
+#### Forcing TLS on KOPS environments
+
+```bash
+docker run -ti --name myproject --hostname myproject \
+  --cap-add=NET_ADMIN \
+  --env HELM_FORCE_TLS=yes \
+  ...
+```
