@@ -32,7 +32,10 @@ RUN apk add --no-cache zsh bash curl sudo coreutils findutils jq fping make git 
         sed nano vim openssl openssh-client iptables gnupg
 
 # Install awscli & terraform
-RUN pip install awscli sshuttle && apk add --no-cache groff less mailcap && \
+RUN pip install awscli && \
+    # use a fixed version of sshuttle
+    pip install pip install git+https://github.com/stackfeed/sshuttle.git && \
+    apk add --no-cache groff less mailcap && \
     curl -sSL https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip \
         -o /tmp/terraform.zip && unzip /tmp/terraform.zip -d /usr/local/bin && \
     curl -sSL https://github.com/gruntwork-io/terragrunt/releases/download/${TG_RELEASE}/terragrunt_linux_amd64 \
