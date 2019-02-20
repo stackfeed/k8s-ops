@@ -14,6 +14,7 @@ ENV \
     KUBECTL_TRACK=stable.txt \
     TF_VERSION=0.11.11 \
     TFCT_VERSION=v0.3.0 \
+    TFCT_CHECKSUM=3d023545e08a90f792714998866ae8f8bab60bfbd583932c1c978133886d344c \
     TG_RELEASE=v0.18.0 \
     HELM_RELEASE=v2.12.3 \
     HELMFILE_RELEASE=v0.45.3 \
@@ -40,11 +41,10 @@ RUN \
     KUBECTL_VERSION=$(curl -sSL "https://storage.googleapis.com/${KUBECTL_SOURCE}/${KUBECTL_TRACK}") && \
 #
     curl -sSL "https://storage.googleapis.com/${KUBECTL_SOURCE}/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
-        -o /usr/local/bin/kubectl && chmod 755 /usr/local/bin/kubectl /usr/local/bin/kops && \
+        -o /usr/local/bin/kubectl && chmod 755 /usr/local/bin/kubectl && \
 # fetch helm
     curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | \
     DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/local/bin" sh -s && \
-    mv /usr/local/bin/helm ${HELM_BINARY} && \
 # fetch helmfile
     curl -sSL "https://github.com/roboll/helmfile/releases/download/${HELMFILE_RELEASE}/helmfile_linux_amd64" \
         -o /usr/local/bin/helmfile && chmod 755 /usr/local/bin/helmfile && \
@@ -75,11 +75,13 @@ RUN cd /tmp && \
         curl -#SL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | bash -s; \
     " && \
 # get terraform ct provider (Container Linux Configs)
-    mkdir -p /home/${USER}/.terraform.d/plugins && ver=${TFCT_VERSION} && \
+    ver=${TFCT_VERSION} && bin=/home/${USER}/.terraform.d/plugins/terraform-provider-ct_${ver} && \
+    mkdir -p $(dirname $bin) && \
     curl -sSL https://github.com/coreos/terraform-provider-ct/releases/download/${ver}/terraform-provider-ct-${ver}-linux-amd64.tar.gz \
         -o /tmp/terraform-provider-ct.tgz && \
-    tar -xzOf /tmp/terraform-provider-ct.tgz terraform-provider-ct-${ver}-linux-amd64/terraform-provider-ct > \
-        /home/${USER}/.terraform.d/plugins/terraform-provider-ct_${ver} && \
+    printf "${TFCT_CHECKSUM}  /tmp/terraform-provider-ct.tgz" | sha256sum -c && \
+    tar -xzOf /tmp/terraform-provider-ct.tgz terraform-provider-ct-${ver}-linux-amd64/terraform-provider-ct > $bin && \
+    chown root:root ${bin} && chmod 755 ${bin} && \
 # move current user home into a "skeleton" directory
     mv /home/${USER} /home/_home-skeleton_ && mkdir /home/${USER} && chown ${USER}:${GROUP} /home/${USER} && \
 # cleanup
