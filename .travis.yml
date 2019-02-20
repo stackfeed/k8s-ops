@@ -8,6 +8,7 @@ env:
     - PUSH_NAMESPACES=stackfeed
   matrix:
     - DFDIR=./aws FLAVOUR=aws
+    - DFDIR=./typhoon FLAVOUR=typhoon
 
 install:
   - curl -sSL https://github.com/stackfeed/ci-scripts/raw/master/install.sh | sh -s -- -r v0.2
