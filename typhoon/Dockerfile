@@ -12,10 +12,10 @@ ENV ZSH_PLUGINS="aws helm kubectl terraform" \
 ENV \
     KUBECTL_SOURCE=kubernetes-release/release \
     KUBECTL_TRACK=stable.txt \
-    TF_VERSION=0.11.11 \
+    TF_VERSION=0.11.13 \
     TFCT_VERSION=v0.3.0 \
     TFCT_CHECKSUM=3d023545e08a90f792714998866ae8f8bab60bfbd583932c1c978133886d344c \
-    TG_RELEASE=v0.18.0 \
+    TG_RELEASE=v0.18.1 \
     HELM_RELEASE=v2.13.0 \
     HELMFILE_RELEASE=v0.45.3 \
     FIXUID_RELEASE=v0.4 \
@@ -45,6 +45,7 @@ RUN \
 # fetch helm
     curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | \
     DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/local/bin" sh -s && \
+    mv /usr/local/bin/helm /usr/local/bin/helm.orig && \
 # fetch helmfile
     curl -sSL "https://github.com/roboll/helmfile/releases/download/${HELMFILE_RELEASE}/helmfile_linux_amd64" \
         -o /usr/local/bin/helmfile && chmod 755 /usr/local/bin/helmfile && \
@@ -54,6 +55,8 @@ RUN \
     curl --remote-name-all -sSL https://github.com/mozilla/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux \
         -o ${bin} && printf "${SOPS_CHECKSUM}  ${bin}" | sha256sum -c && chown root:root ${bin} && chmod 755 ${bin}
 
+# Copy data
+ADD ./scripts/helm /usr/local/bin/helm
 
 RUN cd /tmp && \
 # install fixuid and create an unprivileged user (sudo enabled)

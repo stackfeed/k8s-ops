@@ -6,19 +6,17 @@ LABEL com.stackfeed.k8s-ops.vendor=StackFeed \
 
 # List of plugins to enable in ZSH and theme
 ENV ZSH_PLUGINS="aws helm kops kubectl terraform" \
-    ZSH_THEME=cloud \
-    HELM_BINARY=/usr/local/bin/helm-binary \
-    HELM_FORCE_TLS=no
+    ZSH_THEME=cloud
 
 # Tooling versions
 ENV \
     KUBECTL_SOURCE=kubernetes-release/release \
     KUBECTL_TRACK=stable.txt \
-    TF_VERSION=0.11.11 \
-    TG_RELEASE=v0.17.4 \
+    TF_VERSION=0.11.13 \
+    TG_RELEASE=v0.18.1 \
     KOPS_VERSION=1.11.0 \
-    HELM_RELEASE=v2.12.1 \
-    HELMFILE_RELEASE=v0.41.0 \
+    HELM_RELEASE=v2.13.0 \
+    HELMFILE_RELEASE=v0.45.3 \
     ARK_RELEASE=v0.9.10 \
     AUTHENTICATOR_RELEASE=v0.3.0 \
     FIXUID_RELEASE=v0.4 \
@@ -54,7 +52,7 @@ RUN \
 # fetch helm
     curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | \
     DESIRED_VERSION="${HELM_RELEASE}" HELM_INSTALL_DIR="/usr/local/bin" sh -s && \
-    mv /usr/local/bin/helm ${HELM_BINARY} && \
+    mv /usr/local/bin/helm /usr/local/bin/helm.orig && \
 # fetch helmfile
     curl -sSL "https://github.com/roboll/helmfile/releases/download/${HELMFILE_RELEASE}/helmfile_linux_amd64" \
         -o /usr/local/bin/helmfile && chmod 755 /usr/local/bin/helmfile && \

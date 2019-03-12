@@ -1,18 +1,33 @@
 #!/bin/sh
-HELM_BINARY=${HELM_BINARY:-/usr/local/bin/helm-binary}
-
-## Enable --tls substitution for helm tls-enabled commands
+## Helm wrapper provides auto certificate and key substitution.
+#  In case wrapper locates $HELM_HOME/tls/$cluster_name and a command should be carried via TLS,
+#  it will pass the corresponding command line to the original helm binary.
 #
-__tls_commands="diff del delete get hist history install ls list reset rollback status test upgrade verify"
-cmd="$1"
-shift
 
-args="$@"
-enabled="yes y true enabled enable"
+helm_binary=/usr/local/bin/helm.orig
+tls_commands="diff del delete get hist history install ls list reset rollback status test upgrade verify version"
 
-# enable tls
-if ( echo "${__tls_commands}" | grep -wq "${cmd}" && echo "$enabled" | grep -wq "$HELM_FORCE_TLS" ); then
-  args="--tls $@"
-fi
 
-$HELM_BINARY ${cmd} ${args}
+helm_tls() {
+  ## HELM_AUTO_TLS disabled
+  if ( echo "disable disabled false no" | grep -wq "$HELM_AUTO_TLS" ); then
+    $helm_binary $@
+  fi
+
+
+  ## should be one of the tls commands
+  if [ -n "$*" ] && ( echo "${__tls_commands}" | grep -wq "${__cmd}" ); then
+    __cluster="$(kubectl config view -o jsonpath='{.clusters[].name}')"
+    __keysdir="${HELM_AUTO_TLS:-`$helm_binary home`/tls}/${__cluster}"
+
+    ## cluster directory should exist
+    if [ -d "${__keysdir}" ]; then
+      set -- "$1" --tls --tls-cert "${__keysdir}/cert.pem" --tls-key "${__keysdir}/key.pem"
+    fi
+  fi
+
+  $helm_binary $@
+}
+
+
+helm_tls $@

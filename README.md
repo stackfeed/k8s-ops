@@ -21,7 +21,7 @@ List of software bundled into this container:
 |------|-------------|:----:|
 | ZSH_THEME | Zsh theme to use. | `cloud` |
 | ZSH_PLUGINS | Zsh plugins enabled. | `aws helm kops kubectl terraform` |
-| HELM_FORCE_TLS | Specify y/yes/enabled/enable/true to force Helm `--tls` option. | `no` |
+| HELM_AUTO_TLS | Set to a path containing cluster_name/{cert,key.pem} or to `false` to disable feature | `"$HELM_HOME/tls"` |
 
 ## k8s-ops for AWS
 
@@ -109,11 +109,8 @@ docker run -ti  --name myproject --hostname myproject \
   stackfeed/k8s-ops:aws
 ```
 
-#### Forcing TLS on KOPS environments
+#### HELM_AUTO_TLS
 
-```bash
-docker run -ti --name myproject --hostname myproject \
-  --cap-add=NET_ADMIN \
-  --env HELM_FORCE_TLS=yes \
-  ...
-```
+This feature is enabled by default, it can disabled by setting `HELM_AUTO_TLS=false`. Shipped by the small helm binary wrapper this feature decides which relevant helm private key and certificate to pass to as the original `helm` binary.
+
+Empty value of this environment variable is identical to `$HELM_HOME/tls`. In case the **wrapper locates a directory named as the current cluster** (`kubctl config current-context`) under `$HELM_HOME/tls` it will automatically pass `cert.pem` and `key.pem` to the original helm binary. Note that you can set `HELM_AUTO_TLS` to point to a different directory to locate helm client authentication credentials.
