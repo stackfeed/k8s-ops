@@ -16,13 +16,15 @@ helm_tls() {
 
   ## cluster name should be located and a command provided
   __cluster="$(kubectl config view -o jsonpath='{.clusters[].name}' 2>/dev/null)"
+  __cmd="$1"
 
-  if [ -n "${__cluster}" -a -n "$*" ] && ( echo "${__tls_commands}" | grep -wq "${__cmd}" ); then
+  if [ -n "${__cluster}" -a -n "${__cmd}" ] && ( echo "${tls_commands}" | grep -wq "${__cmd}" ); then
     __keysdir="${HELM_AUTO_TLS:-`$helm_binary home`/tls}/${__cluster}"
 
     ## cluster directory should exist
     if [ -d "${__keysdir}" ]; then
-      set -- "$1" --tls --tls-cert "${__keysdir}/cert.pem" --tls-key "${__keysdir}/key.pem"
+      shift
+      set -- "${__cmd}" --tls --tls-cert "${__keysdir}/cert.pem" --tls-key "${__keysdir}/key.pem" $@
     fi
   fi
 
