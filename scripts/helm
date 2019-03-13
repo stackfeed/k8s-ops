@@ -7,6 +7,10 @@
 helm_binary=/usr/local/bin/helm.orig
 tls_commands="diff del delete get hist history install ls list reset rollback status test upgrade verify version"
 
+kubectl_current_cluster() {
+  __context=$(kubectl config view -o jsonpath='{.current-context}' 2>/dev/null)
+  [ -z "${__context}" ] || kubectl config view -o jsonpath="{.contexts[?(@.name=='${__context}')]..cluster}" 2>/dev/null
+}
 
 helm_tls() {
   ## HELM_AUTO_TLS disabled
@@ -15,8 +19,8 @@ helm_tls() {
   fi
 
   ## cluster name should be located and a command provided
-  __cluster="$(kubectl config view -o jsonpath='{.clusters[].name}' 2>/dev/null)"
   __cmd="$1"
+  __cluster=$(kubectl_current_cluster)
 
   if [ -n "${__cluster}" -a -n "${__cmd}" ] && ( echo "${tls_commands}" | grep -wq "${__cmd}" ); then
     __keysdir="${HELM_AUTO_TLS:-`$helm_binary home`/tls}/${__cluster}"
